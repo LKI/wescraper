@@ -22,7 +22,7 @@ Windows:
 
 # 详细说明
 
-* 本工具完全依赖[搜狗微信搜索][sougou]抓取文章，所以万一以后搜狗微信改了的话…
+* 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，所以万一以后搜狗微信改了的话…
 
 * 把你想搜的公众号添加到[accounts.list](accounts.list)就可以搜到它们的最新十篇文章。
 
@@ -36,6 +36,6 @@ Windows:
 严禁用于商业用途，其它转载/Fork随意。
 
 [scrapy]: https://github.com/scrapy/scrapy
-[sougou]: http://weixin.sogou.com/
+[sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/
 [python]: http://3.im.guokr.com/_mdg6v4MaUReoxYx0i0viv8HfkFRHtvLIOM_D4rfeqtAAgAAjQEAAEpQ.jpg
