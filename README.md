@@ -4,27 +4,14 @@
 
 # 使用教程
 
-首先，你得有Python和[scrapy][scrapy]
-
-Linux:
-
-```
-    git clone https://github.com/LKI/weixinscraper.git && cd weixinscraper && ./run
-```
-
-Windows:
-
 ```
     git clone https://github.com/LKI/weixinscraper.git
-    cd weixinscraper
-    scrapy runspider spider/spider.py -o weixin.json
+    python weixinscraper/weixinscraper/demo.py > output.json
 ```
 
 # 详细说明
 
 * 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，所以万一以后搜狗微信改了的话…
-
-* 把你想搜的公众号添加到[accounts.list](accounts.list)就可以搜到它们的最新十篇文章。
 
 * [Python大法好！][dive-into-python] :wink:
 
