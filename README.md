@@ -4,10 +4,7 @@
 
 # 使用教程
 
-```
-    git clone https://github.com/LKI/weixinscraper.git
-    python weixinscraper/weixinscraper/demo.py > output.json
-```
+[server.py][server-py]使用tornado构建简单的本地Server来获取Json格式的文章
 
 # 详细说明
 
@@ -23,6 +20,7 @@
 严禁用于商业用途，其它转载/Fork随意。
 
 [scrapy]: https://github.com/scrapy/scrapy
+[server-py]: /weixinscraper/server.py
 [sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/
 [python]: http://3.im.guokr.com/_mdg6v4MaUReoxYx0i0viv8HfkFRHtvLIOM_D4rfeqtAAgAAjQEAAEpQ.jpg
