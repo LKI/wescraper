@@ -60,8 +60,9 @@ class WeixinSpider(Spider):
         dynamically, we need to get the permenant URL of the article.
         """
         title  = response.xpath('//div[@id="page-content"]/div/h2/text()')[0].extract().strip().encode('utf-8')
+        user   = response.xpath('//*[@id="post-user"]/text()')[0].extract()
         script = response.xpath('//script[contains(text(), "var biz =")]')[0]
-        params = ['biz', 'sn', 'mid']
+        params = ['biz', 'sn', 'mid', 'idx']
         values = map(lambda x:x + '=' + script.re('var ' + x + ' = .*"([^"]*)";')[0], params)
         url    = "http://mp.weixin.qq.com/s?" + reduce(lambda x,y:x+'&'+y, values)
         date   = response.xpath('//*[@id="post-date"]')[0].extract()
@@ -69,6 +70,7 @@ class WeixinSpider(Spider):
         info   = self.article_infos[response.url]
         yield {
             'title'   : title,
+            'account' : user,
             'url'     : url,
             'date'    : info['date'],
             'cover'   : info['cover'],
