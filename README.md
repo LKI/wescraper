@@ -1,18 +1,31 @@
 # Weixin Scraper
 
-本工具使用Python库[scrapy][scrapy]以搜索微信公众号文章。
+本工具使用Python2.7和[scrapy][scrapy]来搜索微信公众号文章。
 
 # 使用教程
 
-[server.py][server-py]使用tornado构建简单的本地Server来获取Json格式的文章
+```
+pip install tornado
+pip install scrapy
+python weixinscraper/server.py
+```
+
+前两条命令安装tornado和scrapy，然后最后一条命令跑一个本地server
+
+然后你就可以通过`http://localhost/account1/account2/account3...`
+来获取微信公众号文章列表了。
+
+假如希望通过Python Code内部调用可以参见[server.py][server-py]源码
+
+（代码很短，应该比较好懂）
 
 # 详细说明
 
-* 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，所以万一以后搜狗微信改了的话…
+* 因为Python2的默认Encoding是ASCII，所以抓取中文会被转译。但是不影响JSON数据本身。
+
+* 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，假如搜狗微信搜索接口什么的变了可能就会抓取失败。
 
 * [Python大法好！][dive-into-python] :wink:
-
-![Python is Great][python]
 
 # 版权/免责
 
@@ -23,4 +36,3 @@
 [server-py]: /weixinscraper/server.py
 [sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/
-[python]: http://3.im.guokr.com/_mdg6v4MaUReoxYx0i0viv8HfkFRHtvLIOM_D4rfeqtAAgAAjQEAAEpQ.jpg
