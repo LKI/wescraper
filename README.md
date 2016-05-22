@@ -27,6 +27,11 @@ python weixinscraper/server.py
 
 * [Python大法好！][dive-into-python] :wink:
 
+# 已知问题
+
+* [server.py][server-py]只能查询一次公众号，后续出现500错误。
+这是因为scrapy中某一项服务在首次查询中被关闭了，正在修复中。
+
 # 版权/免责
 
 代码版权归GitHub原作者 @LKI 所有。
