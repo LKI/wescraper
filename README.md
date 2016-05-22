@@ -32,6 +32,7 @@ python weixinscraper/server.py
 # 详细说明
 
 * 本工具没有考虑反爬虫的问题，解决方案可以参考[Scrapy: Avoiding getting banned][anti]
+（一般而言，换IP就可以解决问题了）
 
 * 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，假如搜狗微信搜索接口什么的变了可能就会抓取失败。
 
