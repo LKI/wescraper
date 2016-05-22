@@ -26,4 +26,5 @@ class WeixinScraper:
 if __name__ == '__main__':
     import sys
     datas = WeixinScraper().crawl(sys.argv[1:])
-    print (u"[" + u', '.join(map(lambda data: u'{' + u', '.join(map(lambda key: u"\"{}\": \"{}\"".format(key, data[key].replace(u"\"", u"\\\"")), data.keys())) + u'}', datas)) + u"]").encode('utf8')
+    import json
+    print json.dumps(datas, ensure_ascii=False).encode("utf8")
