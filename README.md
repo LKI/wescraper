@@ -16,22 +16,17 @@ python weixinscraper/weixinscraper.py liriansu
 然后通过`http://localhost/account1/account2/account3...`
 来获取微信公众号文章列表了。
 
-假如希望通过Python Code内部调用可以参见[server.py][server-py]源码
+假如希望通过Python Code内部调用可以参见[wxscraper.py][scraper-py]源码
 
 （代码很短，应该比较好懂）
 
 # 详细说明
 
-* 因为Python2的默认Encoding是ASCII，所以抓取中文会被转译。但是不影响JSON数据本身。
+* 本工具没有考虑反爬虫的问题，解决方案可以参考[Scrapy: Avoiding getting banned][anti]
 
 * 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，假如搜狗微信搜索接口什么的变了可能就会抓取失败。
 
 * [Python大法好！][dive-into-python] :wink:
-
-# 已知问题
-
-* [server.py][server-py]只能查询一次公众号，后续出现500错误。
-这是因为scrapy中某一项服务在首次查询中被关闭了，正在修复中。
 
 # 版权/免责
 
@@ -39,6 +34,7 @@ python weixinscraper/weixinscraper.py liriansu
 严禁用于商业用途，其它转载/Fork随意。
 
 [scrapy]: https://github.com/scrapy/scrapy
-[server-py]: /weixinscraper/server.py
+[scraper-py]: /weixinscraper/wxscraper.py
+[anti]: http://doc.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned
 [sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/

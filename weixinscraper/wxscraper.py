@@ -12,9 +12,11 @@ class WeixinScraper:
 
     def crawl(self, accounts):
         crawler = CrawlerProcess({
-            'ITEM_PIPELINES' : {'__main__.WeixinScraper': 1},
-            'LOG_ENABLED'    : False,
-            'ACCOUNT_LIST'   : accounts
+            'ITEM_PIPELINES'           : {'__main__.WeixinScraper' : 1},
+            'LOG_ENABLED'              : False,
+            'COOKIES_ENABLED'          : True,
+            'RANDOMIZE_DOWNLOAD_DELAY' : True,
+            'ACCOUNT_LIST'             : accounts
         })
         spider = WeixinSpider(accounts=accounts)
         crawler.crawl(spider)

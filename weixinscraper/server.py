@@ -1,12 +1,19 @@
-from wxscraper import WeixinScraper
 from tornado.ioloop import IOLoop
-import json
 import tornado.web as tw
+import os.path
+import subprocess
+
+scraper = "wxscraper.py";
+if not os.path.exists(scraper):
+    scraper = os.path.join("weixinscraper", scraper)
 
 class WeixinHandler(tw.RequestHandler):
     def get(self, path):
         if path:
-            self.write(json.dumps(WeixinScraper().crawl(path.split('/'))))
+            accounts = path.split('/')
+            p = subprocess.Popen(["python", scraper, accounts], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            out, err = p.communicate()
+            self.write(out)
         else:
             self.write("You may specify a URL to search, such as (http://host/liriansu/miawu)")
 

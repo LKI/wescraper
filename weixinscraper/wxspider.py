@@ -1,4 +1,5 @@
 import json
+from random import random
 from datetime import datetime
 from scrapy import Spider, Request
 from HTMLParser import HTMLParser as hp
@@ -17,7 +18,11 @@ class WeixinSpider(Spider):
         Actually, it's better to use __init__ to pass the attributes. But I've
         tried and failed. So I use scrapy settings for a workaround.
         """
-        self.start_urls = map(lambda x: "http://weixin.sogou.com/weixin?query=" + x, self.settings.get('ACCOUNT_LIST'))
+        random_start_urls = [
+            "http://weixin.sogou.com/weixin?type=1&ie=utf8&_sug_=n&_sug_type_=&query=",
+            "http://weixin.sogou.com/weixin?query="
+        ]
+        self.start_urls = map(lambda x: random_start_urls[int(random() * len(random_start_urls))] + x, self.settings.get('ACCOUNT_LIST'))
         for url in self.start_urls:
             yield self.make_requests_from_url(url)
 
@@ -26,6 +31,10 @@ class WeixinSpider(Spider):
         """
         Parse the result from the main search page and crawl into each result.
         """
+        if "/antispider/" in response.url:
+            yield {
+                u"error": u"Caught by Weixin Antispider: {}".format(response.url)
+            }
         for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):
             account_url = response.urljoin(href.extract())
             yield Request(account_url, callback=self.parse_account)
