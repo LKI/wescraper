@@ -4,21 +4,30 @@
 
 # 使用教程
 
+## 命令行直接查询
+
+安装Scrapy，直接查询。（例：查询`liriansu`相关的公众号）
+
 ```
-pip install tornado
 pip install scrapy
 python weixinscraper/weixinscraper.py liriansu
 ```
 
-前两条命令安装tornado和scrapy，然后最后一条命令查询和`liriansu`相关的公众号。
+## Web Server查询
 
-或者你也可以跑`python weixinscraper/server.py`
-然后通过`http://localhost/account1/account2/account3...`
+安装Scrapy与Tornado，通过本地server查询：
+
+```
+pip install scrapy tornado
+python weixinscraper/server.py
+```
+
+在server起来以后就可以通过`http://localhost/account1/account2/account3...`
 来获取微信公众号文章列表了。
 
-假如希望通过Python Code内部调用可以参见[wxscraper.py][scraper-py]源码
+## Python Code调用
 
-（代码很短，应该比较好懂）
+参见[wxscraper.py][scraper-py]源码
 
 # 详细说明
 

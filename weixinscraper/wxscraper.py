@@ -21,7 +21,7 @@ class WeixinScraper:
         spider = WeixinSpider(accounts=accounts)
         crawler.crawl(spider)
         crawler.start()
-        return self.results
+        return sorted(self.results, key=lambda x:x[u'date'])
 
 if __name__ == '__main__':
     import sys

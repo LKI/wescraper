@@ -21,4 +21,5 @@ app = tw.Application([
     (r'/(.*)', WeixinHandler)
 ])
 app.listen(80)
+print "Server is up on port 80 now."
 IOLoop.current().start()

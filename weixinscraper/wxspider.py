@@ -33,7 +33,8 @@ class WeixinSpider(Spider):
         """
         if "/antispider/" in response.url:
             yield {
-                u"error": u"Caught by Weixin Antispider: {}".format(response.url)
+                u"error": u"Caught by Weixin Antispider: {}".format(response.url),
+                u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
             }
         for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):
             account_url = response.urljoin(href.extract())
@@ -74,7 +75,6 @@ class WeixinSpider(Spider):
         params = ['biz', 'sn', 'mid', 'idx']
         values = map(lambda x:x + '=' + script.re('var ' + x + ' = .*"([^"]*)";')[0], params)
         url    = "http://mp.weixin.qq.com/s?" + reduce(lambda x,y:x+'&'+y, values)
-        date   = response.xpath('//*[@id="post-date"]')[0].extract()
         html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).strip()
         info   = self.article_infos[response.url]
         yield {
