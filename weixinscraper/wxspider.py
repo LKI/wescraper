@@ -38,9 +38,9 @@ class WeixinSpider(Spider):
         very beginning. It use JavaScript and a Json string to render the page
         dynamicly. So we use python-json module to parse the Json string.
         """
-        nickname = response.xpath('//div/strong[contains(@class, "profile_nickname")]/text()')[0].extract().strip().encode('utf-8')
-        account  = response.xpath('//div/p[contains(@class, "profile_account")]/text()')[0].extract().strip().encode('utf-8')
-        msgJson  = response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0].encode('utf-8')
+        nickname = response.xpath('//div/strong[contains(@class, "profile_nickname")]/text()')[0].extract().strip()
+        account  = response.xpath('//div/p[contains(@class, "profile_account")]/text()')[0].extract().strip()
+        msgJson  = response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0]
         articles = json.loads(msgJson)['list']
         for article in articles:
             appinfo = article['app_msg_ext_info']
@@ -59,21 +59,21 @@ class WeixinSpider(Spider):
         Finally we've got into the article page. Since response.url is generated
         dynamically, we need to get the permenant URL of the article.
         """
-        title  = response.xpath('//div[@id="page-content"]/div/h2/text()')[0].extract().strip().encode('utf-8')
+        title  = response.xpath('//div[@id="page-content"]/div/h2/text()')[0].extract().strip()
         user   = response.xpath('//*[@id="post-user"]/text()')[0].extract()
         script = response.xpath('//script[contains(text(), "var biz =")]')[0]
         params = ['biz', 'sn', 'mid', 'idx']
         values = map(lambda x:x + '=' + script.re('var ' + x + ' = .*"([^"]*)";')[0], params)
         url    = "http://mp.weixin.qq.com/s?" + reduce(lambda x,y:x+'&'+y, values)
         date   = response.xpath('//*[@id="post-date"]')[0].extract()
-        html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).encode('utf-8').strip()
+        html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).strip()
         info   = self.article_infos[response.url]
         yield {
-            'title'   : title,
-            'account' : user,
-            'url'     : url,
-            'date'    : info['date'],
-            'cover'   : info['cover'],
-            'digest'  : info['digest'],
-            'content' : html
+            u'title'   : unicode(title),
+            u'account' : unicode(user),
+            u'url'     : unicode(url),
+            u'date'    : unicode(info['date']),
+            u'cover'   : unicode(info['cover']),
+            u'digest'  : unicode(info['digest']),
+            u'content' : unicode(html)
         }

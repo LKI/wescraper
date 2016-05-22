@@ -13,9 +13,15 @@ class WeixinScraper:
     def crawl(self, accounts):
         crawler = CrawlerProcess({
             'ITEM_PIPELINES' : {'__main__.WeixinScraper': 1},
+            'LOG_ENABLED'    : False,
             'ACCOUNT_LIST'   : accounts
         })
         spider = WeixinSpider(accounts=accounts)
         crawler.crawl(spider)
         crawler.start()
         return self.results
+
+if __name__ == '__main__':
+    import sys
+    datas = WeixinScraper().crawl(sys.argv[1:])
+    print (u"[" + u', '.join(map(lambda data: u'{' + u', '.join(map(lambda key: u"\"{}\": \"{}\"".format(key, data[key].replace(u"\"", u"\\\"")), data.keys())) + u'}', datas)) + u"]").encode('utf8')

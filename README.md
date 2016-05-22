@@ -7,12 +7,13 @@
 ```
 pip install tornado
 pip install scrapy
-python weixinscraper/server.py
+python weixinscraper/weixinscraper.py liriansu
 ```
 
-前两条命令安装tornado和scrapy，然后最后一条命令跑一个本地server
+前两条命令安装tornado和scrapy，然后最后一条命令查询和`liriansu`相关的公众号。
 
-然后你就可以通过`http://localhost/account1/account2/account3...`
+或者你也可以跑`python weixinscraper/server.py`
+然后通过`http://localhost/account1/account2/account3...`
 来获取微信公众号文章列表了。
 
 假如希望通过Python Code内部调用可以参见[server.py][server-py]源码
