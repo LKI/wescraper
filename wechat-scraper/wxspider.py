@@ -4,9 +4,9 @@ from datetime import datetime
 from scrapy import Spider, Request
 from HTMLParser import HTMLParser as hp
 
-class WeixinSpider(Spider):
+class WeChatSpider(Spider):
     """
-    The WeixinSpider class will use weixin.sogou.com to search the official
+    The WeChatSpider class will use weixin.sogou.com to search the official
     accounts. And get the first ten article infomation of each official
     account.
     """
@@ -33,7 +33,7 @@ class WeixinSpider(Spider):
         """
         if "/antispider/" in response.url:
             yield {
-                u"error": u"Caught by Weixin Antispider: {}".format(response.url),
+                u"error": u"Caught by WeChat Antispider: {}".format(response.url),
                 u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
             }
         for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):

@@ -1,4 +1,4 @@
-# Weixin Scraper
+# Wechat Scraper
 
 本工具使用Python2.7和[scrapy][scrapy]来搜索微信公众号文章。
 
@@ -10,7 +10,7 @@
 
 ```
 pip install scrapy
-python weixinscraper/weixinscraper.py liriansu
+python wechat-scraper/wxscraper.py liriansu
 ```
 
 ## Web Server查询
@@ -19,7 +19,7 @@ python weixinscraper/weixinscraper.py liriansu
 
 ```
 pip install scrapy tornado
-python weixinscraper/server.py
+python wechat-scraper/server.py
 ```
 
 在server起来以后就可以通过`http://localhost/account1/account2/account3...`
