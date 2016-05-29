@@ -25,6 +25,9 @@ python wechat-scraper/server.py
 在server起来以后就可以通过`http://localhost/account1/account2/account3...`
 来获取微信公众号文章列表了。
 
+或者可以通过`http://localhost/keyword-day/account1/account2`
+以关键字来查询公众号文章。
+
 ## Python Code调用
 
 参见[wxscraper.py][scraper-py]源码
