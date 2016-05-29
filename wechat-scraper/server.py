@@ -2,10 +2,10 @@ from tornado.ioloop import IOLoop
 import tornado.web as tw
 import os.path
 import subprocess
+import sys
 
-scraper = "wxscraper.py";
-if not os.path.exists(scraper):
-    scraper = os.path.join("weixinscraper", scraper)
+dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
+scraper = os.path.join(dirname,  "wxscraper.py")
 
 class WeixinHandler(tw.RequestHandler):
     def get(self, path):
