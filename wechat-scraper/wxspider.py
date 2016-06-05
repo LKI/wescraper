@@ -53,16 +53,16 @@ class WeChatSpider(Spider):
                 }
             else:
                 yield Request(response.url, cookies=clist[int(random() * len(clist))], callback=self.parse)
-        # Save new cookie in pool
+        # Parse return cookie
+        new_cookie = self.parse_cookie(response.headers.getlist('Set-Cookie'))
+        # If we are using empty cookie, then save the new cookie
         if 0 == len(self.cookie):
-            snuid = ""
-            suid = ""
-            for c in response.headers.getlist('Set-Cookie'):
-                if 'SNUID' == c.split('=')[0]:
-                    snuid = c.split('=')[1].split(';')[0]
-                if 'SUID' == c.split('=')[0]:
-                    suid = c.split('=')[1].split(';')[0]
-            self.cookie_pool.add(self.cookie_pool.new(snuid, suid))
+            self.cookie_pool.add(new_cookie)
+            self.cookie_pool.dump()
+        # or the new cookie is different from the old cookie
+        elif not self.cookie_pool.has(new_cookie):
+            self.cookie_pool.remove(self.cookie)
+            self.cookie_pool.add(new_cookie)
             self.cookie_pool.dump()
         for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):
             account_url = response.urljoin(href.extract())
@@ -114,3 +114,16 @@ class WeChatSpider(Spider):
             u'digest'  : unicode(info['digest']),
             u'content' : unicode(html)
         }
+
+    def parse_cookie(self, header_list):
+        snuid = ""
+        suid = ""
+        for header in header_list:
+            if 'SNUID' == header.split('=')[0]:
+                snuid = header.split('=')[1].split(';')[0]
+            if 'SUID' == header.split('=')[0]:
+                suid = header.split('=')[1].split(';')[0]
+        if "" == snuid:
+            return self.cookie
+        else:
+            return self.cookie_pool.new(snuid, suid)

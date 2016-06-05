@@ -14,7 +14,6 @@ class WeChatScraper:
     def crawl(self, accounts):
         crawler = CrawlerProcess({
             'ITEM_PIPELINES'           : {'__main__.WeChatScraper' : 1},
-            'LOG_ENABLED'              : False,
             'COOKIES_ENABLED'          : True,
             'RANDOMIZE_DOWNLOAD_DELAY' : True,
             'ACCOUNT_LIST'             : accounts
@@ -27,7 +26,6 @@ class WeChatScraper:
     def crawl_key(self, search_type, accounts):
         crawler = CrawlerProcess({
             'ITEM_PIPELINES'           : {'__main__.WeChatScraper' : 1},
-            'LOG_ENABLED'              : False,
             'COOKIES_ENABLED'          : True,
             'RANDOMIZE_DOWNLOAD_DELAY' : True,
             'ACCOUNT_LIST'             : accounts,
