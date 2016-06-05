@@ -13,28 +13,30 @@ class WeChatSpider(Spider):
     """
     name = 'weixin'
     article_infos = {}
+    # Define cookie pool size to 5. At the first 5 queries, we'll use empty
+    # cookie to query and save the return cookie in pool.
+    cookie_pool_size = 5
+    cookie_pool = Cookie()
 
     def start_requests(self):
         """
         Actually, it's better to use __init__ to pass the attributes. But I've
         tried and failed. So I use scrapy settings for a workaround.
         """
+        # Get random start url
         random_start_urls = [
             "http://weixin.sogou.com/weixin?type=1&ie=utf8&_sug_=n&_sug_type_=&query=",
             "http://weixin.sogou.com/weixin?query="
         ]
         self.start_urls = map(lambda x: random_start_urls[int(random() * len(random_start_urls))] + x, self.settings.get('ACCOUNT_LIST'))
 
-        # Maintain a cookie pool to request sogou
-        self.c = Cookie()
-        clist = self.c.get_cookies()
-        if len(clist) < 5:
-            self.cookie = {}
-        else:
-            self.cookie = clist[int(random() * len(clist))]
-
-        print "Using cookie", str(self.cookie)
         for url in self.start_urls:
+            # Get a random cookie
+            clist = self.cookie_pool.get_cookies()
+            if len(clist) < self.cookie_pool_size:
+                self.cookie = {}
+            else:
+                self.cookie = clist[int(random() * len(clist))]
             yield Request(url, cookies=self.cookie, callback=self.parse)
 
     def parse(self, response):
@@ -42,11 +44,15 @@ class WeChatSpider(Spider):
         Parse the result from the main search page and crawl into each result.
         """
         if "/antispider/" in response.url:
-            self.c.remove(self.cookie) # This cookie is banned
-            yield {
-                u"error": u"Caught by WeChat Antispider: {}".format(response.url),
-                u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
-            }
+            self.cookie_pool.remove(self.cookie)   # This cookie is banned, remove it
+            clist = self.cookie_pool.get_cookies() # Use a new cookie to query
+            if 0 == len(clist):                    # If we run out of cookie, then our IP could be banned
+                yield {
+                    u"error": u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url),
+                    u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                }
+            else:
+                yield Request(response.url, cookies=clist[int(random() * len(clist))], callback=self.parse)
         # Save new cookie in pool
         if 0 == len(self.cookie):
             snuid = ""
@@ -56,8 +62,8 @@ class WeChatSpider(Spider):
                     snuid = c.split('=')[1].split(';')[0]
                 if 'SUID' == c.split('=')[0]:
                     suid = c.split('=')[1].split(';')[0]
-            self.c.add(self.c.new(snuid, suid))
-            self.c.dump()
+            self.cookie_pool.add(self.cookie_pool.new(snuid, suid))
+            self.cookie_pool.dump()
         for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):
             account_url = response.urljoin(href.extract())
             yield Request(account_url, callback=self.parse_account)

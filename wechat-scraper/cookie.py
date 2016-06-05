@@ -55,19 +55,3 @@ class Cookie:
             if self.same(self.cookies[i], cookie):
                 self.cookies = self.cookies[:i] + self.cookies[i+1:]
                 return
-
-if __name__ == "__main__":
-    cookies = Cookie()
-    init_list = [
-        cookies.new_with_suv('E7CEFA89EEEBD96E9D77CDDCEE0B7C76', '0A20146766CA0D0A000000005753DDA2', '1465114018152092'),
-        cookies.new_with_suv('200A3D4E2A2C1EAABDB2E2512AC8CACB', '0A2014676F1C920A000000005753E030', '1465114672478651'),
-        cookies.new_with_suv('CAE1D5A7C1C4F4425BF0305EC1E46D8F', '0A2014676F1C920A000000005753E05B', '1465114721115845'),
-        cookies.new_with_suv('E6D3FC16212716A2C47DB61322665669', 'C7F1DD346A20900A000000005753E549', '1465115977684714'),
-        cookies.new_with_suv('231438D0E4E1D0670113C244E5696087', 'C7F1DD346B20900A000000005753E553', '1465115987543482'),
-    ]
-    for cookie in init_list:
-        if not cookies.has(cookie):
-            cookies.add(cookie)
-    cookies.dump()
-    print "Current cookies are:"
-    print cookies.get_cookies()
