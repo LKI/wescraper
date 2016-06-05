@@ -37,6 +37,8 @@ python wechat-scraper/server.py
 * 本工具没有考虑反爬虫的问题，解决方案可以参考[Scrapy: Avoiding getting banned][anti]
 （一般而言，换IP就可以解决问题了）
 
+* [cookie.py][cookie-py]内维护了一个Cookie池，会在5个Cookie中随机选取来访问，假如发现被ban了就会换一个Cookie。
+
 * 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，假如搜狗微信搜索接口什么的变了可能就会抓取失败。
 
 * [Python大法好！][dive-into-python] :wink:
@@ -49,5 +51,6 @@ python wechat-scraper/server.py
 [scrapy]: https://github.com/scrapy/scrapy
 [scraper-py]: /weixinscraper/wxscraper.py
 [anti]: http://doc.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned
+[cookie-py]: /weixinscraper/cookie.py
 [sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/

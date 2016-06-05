@@ -35,6 +35,8 @@ app = tw.Application([
     (r'/keyword-(.*)/(.*)', KeywordHandler),
     (r'/(.*)', WeixinHandler)
 ])
+print "Initializing cookie pool"
+p = subprocess.Popen(["python", os.path.join(dirname, "cookie.py")])
 app.listen(80)
 print "Server is up on port 80 now."
 IOLoop.current().start()

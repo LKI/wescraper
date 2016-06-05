@@ -3,6 +3,7 @@ from random import random
 from datetime import datetime
 from scrapy import Spider, Request
 from HTMLParser import HTMLParser as hp
+from cookie import Cookie
 
 class WeChatSpider(Spider):
     """
@@ -23,19 +24,40 @@ class WeChatSpider(Spider):
             "http://weixin.sogou.com/weixin?query="
         ]
         self.start_urls = map(lambda x: random_start_urls[int(random() * len(random_start_urls))] + x, self.settings.get('ACCOUNT_LIST'))
-        for url in self.start_urls:
-            yield self.make_requests_from_url(url)
 
+        # Maintain a cookie pool to request sogou
+        self.c = Cookie()
+        clist = self.c.get_cookies()
+        if len(clist) < 5:
+            self.cookie = {}
+        else:
+            self.cookie = clist[int(random() * len(clist))]
+
+        print "Using cookie", str(self.cookie)
+        for url in self.start_urls:
+            yield Request(url, cookies=self.cookie, callback=self.parse)
 
     def parse(self, response):
         """
         Parse the result from the main search page and crawl into each result.
         """
         if "/antispider/" in response.url:
+            self.c.remove(self.cookie) # This cookie is banned
             yield {
                 u"error": u"Caught by WeChat Antispider: {}".format(response.url),
                 u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
             }
+        # Save new cookie in pool
+        if 0 == len(self.cookie):
+            snuid = ""
+            suid = ""
+            for c in response.headers.getlist('Set-Cookie'):
+                if 'SNUID' == c.split('=')[0]:
+                    snuid = c.split('=')[1].split(';')[0]
+                if 'SUID' == c.split('=')[0]:
+                    suid = c.split('=')[1].split(';')[0]
+            self.c.add(self.c.new(snuid, suid))
+            self.c.dump()
         for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):
             account_url = response.urljoin(href.extract())
             yield Request(account_url, callback=self.parse_account)
