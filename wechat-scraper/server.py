@@ -13,6 +13,7 @@ class WeixinHandler(tw.RequestHandler):
             accounts = path.split('/')
             p = subprocess.Popen(["python", scraper] + accounts, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
+            print str(err)
             self.write(out)
         else:
             self.write("You may specify a URL to search, such as (http://host/liriansu/miawu)")

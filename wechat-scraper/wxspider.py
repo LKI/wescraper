@@ -1,4 +1,5 @@
 import json
+import logging
 from random import random
 from datetime import datetime
 from scrapy import Spider, Request
@@ -43,6 +44,8 @@ class WeChatSpider(Spider):
         """
         Parse the result from the main search page and crawl into each result.
         """
+        logger = logging.getLogger(response.url[-6:])
+        logger.debug(str("Using cookie :" + str(self.cookie)))
         if "/antispider/" in response.url:
             self.cookie_pool.remove(self.cookie)   # This cookie is banned, remove it
             clist = self.cookie_pool.get_cookies() # Use a new cookie to query
@@ -52,15 +55,19 @@ class WeChatSpider(Spider):
                     u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
                 }
             else:
-                yield Request(response.url, cookies=clist[int(random() * len(clist))], callback=self.parse)
+                self.cookie = clist[int(random() * len(clist))]
+                yield Request(response.url, cookies=self.cookie, callback=self.parse)
         # Parse return cookie
         new_cookie = self.parse_cookie(response.headers.getlist('Set-Cookie'))
+        logger.debug(str("New cookie is:" + str(new_cookie)))
         # If we are using empty cookie, then save the new cookie
         if 0 == len(self.cookie):
+            logger.debug(str("Adding new cookie"))
             self.cookie_pool.add(new_cookie)
             self.cookie_pool.dump()
         # or the new cookie is different from the old cookie
         elif not self.cookie_pool.has(new_cookie):
+            logger.debug(str("Different cookie, old: {}, new: {}, replacing".format(str(self.cookie, new_cookie))))
             self.cookie_pool.remove(self.cookie)
             self.cookie_pool.add(new_cookie)
             self.cookie_pool.dump()
