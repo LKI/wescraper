@@ -67,7 +67,7 @@ class WeChatSpider(Spider):
             self.cookie_pool.dump()
         # or the new cookie is different from the old cookie
         elif not self.cookie_pool.has(new_cookie):
-            logger.debug(str("Different cookie, old: {}, new: {}, replacing".format(str(self.cookie, new_cookie))))
+            logger.debug(str("Different cookie, old: {}, new: {}, replacing".format(str(self.cookie), str(new_cookie))))
             self.cookie_pool.remove(self.cookie)
             self.cookie_pool.add(new_cookie)
             self.cookie_pool.dump()
