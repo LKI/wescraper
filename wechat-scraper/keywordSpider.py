@@ -1,12 +1,17 @@
 import json
+import logging
 from random import random
 from datetime import datetime
 from scrapy import Spider, Request
 from HTMLParser import HTMLParser as hp
+from cookie import Cookie
+
 
 class KeywordSpider(Spider):
     name = 'weixin'
     article_infos = {}
+    cookie_pool_size = 5
+    cookie_pool = Cookie()
 
     def start_requests(self):
         start_urls = {
@@ -20,14 +25,42 @@ class KeywordSpider(Spider):
         search_type = self.settings.get("SEARCH_TYPE")
         self.start_urls = map(lambda x: start_urls[search_type] + x, account_list)
         for url in self.start_urls:
-            yield self.make_requests_from_url(url)
+            # Get a random cookie
+            clist = self.cookie_pool.get_cookies()
+            if len(clist) < self.cookie_pool_size:
+                self.cookie = {}
+            else:
+                self.cookie = clist[int(random() * len(clist))]
+            yield Request(url, cookies=self.cookie, callback=self.parse)
 
     def parse(self, response):
+        logger = logging.getLogger(response.url[-6:])
+        logger.debug(str("Using cookie :" + str(self.cookie)))
         if "/antispider/" in response.url:
-            yield {
-                u"error": u"Caught by WeChat Antispider: {}".format(response.url),
-                u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
-            }
+            self.cookie_pool.remove(self.cookie)   # This cookie is banned, remove it
+            clist = self.cookie_pool.get_cookies() # Use a new cookie to query
+            if 0 == len(clist):                    # If we run out of cookie, then our IP could be banned
+                yield {
+                    u"error": u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url),
+                    u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+                }
+            else:
+                self.cookie = clist[int(random() * len(clist))]
+                yield Request(response.url, cookies=self.cookie, callback=self.parse)
+        # Parse return cookie
+        new_cookie = self.parse_cookie(response.headers.getlist('Set-Cookie'))
+        logger.debug(str("New cookie is:" + str(new_cookie)))
+        # If we are using empty cookie, then save the new cookie
+        if 0 == len(self.cookie):
+            logger.debug(str("Adding new cookie"))
+            self.cookie_pool.add(new_cookie)
+            self.cookie_pool.dump()
+        # or the new cookie is different from the old cookie
+        elif not self.cookie_pool.has(new_cookie):
+            logger.debug(str("Different cookie, old: {}, new: {}, replacing".format(str(self.cookie), str(new_cookie))))
+            self.cookie_pool.remove(self.cookie)
+            self.cookie_pool.add(new_cookie)
+            self.cookie_pool.dump()
         articles = response.xpath('//div[@class="results"]/div[contains(@class, "wx-rb")]')
         for i in range(0, len(articles) - 1):
             url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
@@ -59,3 +92,16 @@ class KeywordSpider(Spider):
             u'digest'  : unicode(info['digest']),
             u'content' : unicode(html)
         }
+
+    def parse_cookie(self, header_list):
+        snuid = ""
+        suid = ""
+        for header in header_list:
+            if 'SNUID' == header.split('=')[0]:
+                snuid = header.split('=')[1].split(';')[0]
+            if 'SUID' == header.split('=')[0]:
+                suid = header.split('=')[1].split(';')[0]
+        if "" == snuid:
+            return self.cookie
+        else:
+            return self.cookie_pool.new(snuid, suid)
