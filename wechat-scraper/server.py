@@ -5,7 +5,7 @@ import subprocess
 import sys
 
 dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
-scraper = os.path.join(dirname,  "wxscraper.py")
+scraper = os.path.join(dirname,  "scraper.py")
 
 class WeixinHandler(tw.RequestHandler):
     def get(self, path):
@@ -27,14 +27,15 @@ class KeywordHandler(tw.RequestHandler):
             accounts = path.split('/')
             p = subprocess.Popen(["python", scraper] + [key_type] + accounts, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
+            print str(err)
             self.write(out)
         else:
             self.write("You may specify a URL to search, such as (http://host/keyword-(type)/liriansu/miawu)")
 
 app = tw.Application([
     (r'/(favicon.ico)', tw.StaticFileHandler, {"path": ""}),
-    (r'/keyword-(.*)/(.*)', KeywordHandler),
-    (r'/(.*)', WeixinHandler)
+    (ur'/keyword-(.*)/(.*)', KeywordHandler),
+    (ur'/(.*)', WeixinHandler)
 ])
 print "Initializing cookie pool"
 p = subprocess.Popen(["python", os.path.join(dirname, "cookie.py")])

@@ -6,9 +6,9 @@ from scrapy import Spider, Request
 from HTMLParser import HTMLParser as hp
 from cookie import Cookie
 
-class WeChatSpider(Spider):
+class AccountSpider(Spider):
     """
-    The WeChatSpider class will use weixin.sogou.com to search the official
+    The AccountSpider class will use weixin.sogou.com to search the official
     accounts. And get the first ten article infomation of each official
     account.
     """
@@ -71,9 +71,9 @@ class WeChatSpider(Spider):
             self.cookie_pool.remove(self.cookie)
             self.cookie_pool.add(new_cookie)
             self.cookie_pool.dump()
-        for href in response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href'):
-            account_url = response.urljoin(href.extract())
-            yield Request(account_url, callback=self.parse_account)
+        # only query first account
+        account_url = response.urljoin(response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first())
+        yield Request(account_url, callback=self.parse_account)
 
     def parse_account(self, response):
         """

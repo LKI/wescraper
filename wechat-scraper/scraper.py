@@ -1,4 +1,4 @@
-from wxspider import WeChatSpider
+from accountSpider import AccountSpider
 from keywordSpider import KeywordSpider
 from scrapy.crawler import CrawlerProcess
 
@@ -18,10 +18,10 @@ class WeChatScraper:
             'RANDOMIZE_DOWNLOAD_DELAY' : True,
             'ACCOUNT_LIST'             : accounts
         })
-        spider = WeChatSpider()
+        spider = AccountSpider()
         crawler.crawl(spider)
         crawler.start()
-        return sorted(self.results, key=lambda x:x[u'date'])
+        return sorted(self.results, key=lambda x:x[u'date'], reverse=True)
 
     def crawl_key(self, search_type, accounts):
         crawler = CrawlerProcess({
@@ -34,7 +34,7 @@ class WeChatScraper:
         spider = KeywordSpider()
         crawler.crawl(spider)
         crawler.start()
-        return sorted(self.results, key=lambda x:x[u'date'])
+        return sorted(self.results, key=lambda x:x[u'date'], reverse=True)
 
 if __name__ == '__main__':
     import sys
