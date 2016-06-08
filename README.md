@@ -1,4 +1,4 @@
-# Wechat Scraper
+# WeScraper (WEchat SCRAPER)
 
 本工具使用Python2.7和[scrapy][scrapy]来搜索微信公众号文章。
 
@@ -10,8 +10,8 @@
 
 ```
 pip install scrapy
-python wechat-scraper/scraper.py liriansu > liriansu.json # 查询liriansu相关的公众号
-python wechat-scraper/scraper.py year liriansu > liriansu.json # 查询liriansu相关的文章（一年内）
+python wescraper/scraper.py liriansu > liriansu.json # 查询liriansu相关的公众号
+python wescraper/scraper.py year liriansu > liriansu.json # 查询liriansu相关的文章（一年内）
 ```
 
 ## Web Server查询
@@ -20,7 +20,7 @@ python wechat-scraper/scraper.py year liriansu > liriansu.json # 查询liriansu�
 
 ```
 pip install scrapy tornado
-python wechat-scraper/server.py
+python wescraper/server.py
 ```
 
 在server起来以后就可以通过`http://localhost/account1/account2/account3...`
@@ -50,8 +50,8 @@ python wechat-scraper/server.py
 严禁用于商业用途，其它转载/Fork随意。
 
 [scrapy]: https://github.com/scrapy/scrapy
-[scraper-py]: /wechat-scraper/scraper.py
+[scraper-py]: /wescraper/scraper.py
 [anti]: http://doc.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned
-[cookie-py]: /wechat-scraper/cookie.py
+[cookie-py]: /wescraper/cookie.py
 [sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/
