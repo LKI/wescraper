@@ -10,8 +10,8 @@
 
 ```
 pip install scrapy
-python wescraper/scraper.py liriansu > liriansu.json # 查询liriansu相关的公众号
-python wescraper/scraper.py year liriansu > liriansu.json # 查询liriansu相关的文章（一年内）
+python wescraper/scraper.py account liriansu > liriansu.json # 查询liriansu相关的公众号
+python wescraper/scraper.py key-day liriansu > liriansu.json # 查询liriansu相关的文章（一天内）
 ```
 
 ## Web Server查询
@@ -23,10 +23,10 @@ pip install scrapy tornado
 python wescraper/server.py
 ```
 
-在server起来以后就可以通过`http://localhost/account1/account2/account3...`
+在server起来以后就可以通过`http://localhost/account/foo/bar/baz...`
 来获取微信公众号文章列表了。
 
-或者可以通过`http://localhost/keyword-day/account1/account2`
+或者可以通过`http://localhost/key-year/foo/bar/baz...`
 以关键字来查询公众号文章。
 
 ## Python Code调用
@@ -35,10 +35,14 @@ python wescraper/server.py
 
 # 详细说明
 
+* 一些可配置的参数见[config.py][config-py]
+
 * 本工具没有考虑反爬虫的问题，解决方案可以参考[Scrapy: Avoiding getting banned][anti]
 （一般而言，换IP就可以解决问题了）
 
-* [cookie.py][cookie-py]内维护了一个Cookie池，会在5个Cookie中随机选取来访问，假如发现被ban了就会换一个Cookie。
+* [cookie.py][cookie-py]内维护了一个Cookie池，会在n个Cookie中随机选取来访问，假如发现被ban了就会换一个Cookie。
+
+* 欢迎在本代码基础上修改，记得跑一下单元测试噢：`python wescraper/test/test.py`
 
 * 本工具完全依赖[搜狗微信搜索][sogou]抓取文章，假如搜狗微信搜索接口什么的变了可能就会抓取失败。
 
@@ -51,6 +55,7 @@ python wescraper/server.py
 
 [scrapy]: https://github.com/scrapy/scrapy
 [scraper-py]: /wescraper/scraper.py
+[config-py]: /wescraper/config.py
 [anti]: http://doc.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned
 [cookie-py]: /wescraper/cookie.py
 [sogou]:  http://weixin.sogou.com/

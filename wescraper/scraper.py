@@ -1,5 +1,6 @@
 from wespider import WeSpider
 from scrapy.crawler import CrawlerProcess
+import config
 
 class WeScraper:
     """
@@ -26,7 +27,9 @@ class WeScraper:
 if __name__ == '__main__':
     import sys
     datas = []
-    if len(sys.argv) > 1 and sys.argv[1] in ["account", "key-all", "key-year", "key-month", "key-week", "key-day"]:
+    if len(sys.argv) > 1 and sys.argv[1] in config.types:
         datas = WeScraper().crawl_key(sys.argv[1], sys.argv[2:])
-    import json
-    print json.dumps(datas, ensure_ascii=False).encode("utf8")
+        import json
+        print json.dumps(datas, ensure_ascii=False).encode("utf8")
+    else:
+        print "Search type can only be {}".format(str(config.types))

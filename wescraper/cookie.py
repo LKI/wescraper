@@ -1,11 +1,12 @@
+import config
 import os.path as op
 from time import time
 from random import random
 
 class Cookie:
     cookies = []
-    cookie_file = "temp_cookies.lst"
-    pool_size = 5
+    cookie_file = config.cookie_file
+    pool_size = config.pool_size_min
     def __init__(self):
         if not op.exists(self.cookie_file):
             return

@@ -1,3 +1,4 @@
+import config
 import json
 import logging
 from HTMLParser import HTMLParser as hp
@@ -14,8 +15,7 @@ class WeSpider(Spider):
     """
     article_infos = {}
     cookie_pool   = Cookie()
-    name          = 'wescraper'
-    not_found     = "Not Found"
+    name          = 'wespider'
 
     def start_requests(self):
         """
@@ -23,22 +23,22 @@ class WeSpider(Spider):
         tried and failed. So I use scrapy settings for a workaround.
         """
         start_point = {
-            "account"   : [
-                            "http://weixin.sogou.com/weixin?type=1&ie=utf8&_sug_=n&_sug_type_=&query=",
-                            "http://weixin.sogou.com/weixin?query="
-                          ],
-            "key-all"   : ["http://weixin.sogou.com/weixin?type=2&query="],
-            "key-day"   : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_day&tsn=1&query="],
-            "key-week"  : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_week&tsn=2&query="],
-            "key-month" : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_month&tsn=3&query="],
-            "key-year"  : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_year&tsn=4&query="]
+            config.type_acc  : [
+                                "http://weixin.sogou.com/weixin?type=1&ie=utf8&_sug_=n&_sug_type_=&query=",
+                                "http://weixin.sogou.com/weixin?query="
+                               ],
+            config.type_all  : ["http://weixin.sogou.com/weixin?type=2&query="],
+            config.type_day  : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_day&tsn=1&query="],
+            config.type_week : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_week&tsn=2&query="],
+            config.type_mon  : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_month&tsn=3&query="],
+            config.type_year : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_year&tsn=4&query="]
         }
         account_list = self.settings.get("ACCOUNT_LIST", [])
-        search_type = self.settings.get("SEARCH_TYPE", "account")
+        search_type = self.settings.get("SEARCH_TYPE", config.type_acc)
         random_urls = start_point[search_type]
         self.start_urls = map(lambda x: random_urls[int(random() * len(random_urls))] + x, account_list)
         for url in self.start_urls:
-            if search_type == "account":
+            if search_type == config.type_acc:
                 yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse)
             else:
                 yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse_keyword)
@@ -79,7 +79,7 @@ class WeSpider(Spider):
             for i in range(0, len(articles)):
                 url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
                 cover = hp().unescape(hp().unescape(articles.xpath('//div/a/img/@src')[i].extract())).replace('\\/', '/')
-                date = datetime.fromtimestamp(int(articles.xpath('//div/div/span/script/text()')[i].extract()[22:-2])).strftime('%Y-%m-%d %H:%M:%S')
+                date = datetime.fromtimestamp(int(articles.xpath('//div/div/span/script/text()')[i].extract()[22:-2])).strftime(config.date_format)
                 digest = articles.xpath('//div[@class="txt-box"]/p')[i].extract()
                 self.article_infos[url] = {
                     'cover'  : cover,
@@ -106,7 +106,7 @@ class WeSpider(Spider):
                 url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(info['content_url'][4:]))
                 self.article_infos[url] = {
                     'cover'  : hp().unescape(hp().unescape(info['cover'])).replace('\\/', '/'),
-                    'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime('%Y-%m-%d %H:%M:%S'),
+                    'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime(config.date_format),
                     'digest' : info['digest']
                 }
                 yield Request(url, callback=self.parse_article)
@@ -116,8 +116,8 @@ class WeSpider(Spider):
         Finally we've got into the article page. Since response.url is generated
         dynamically, we need to get the permenant URL of the article.
         """
-        title  = response.xpath('//div[@id="page-content"]/div/h2/text()').extract_first(default=self.not_found).strip()
-        user   = response.xpath('//*[@id="post-user"]/text()').extract_first(default=self.not_found).strip()
+        title  = response.xpath('//div[@id="page-content"]/div/h2/text()').extract_first(default=config.not_found_hint).strip()
+        user   = response.xpath('//*[@id="post-user"]/text()').extract_first(default=config.not_found_hint).strip()
         script = response.xpath('//script[contains(text(), "var biz =")]')[0]
         params = ['biz', 'sn', 'mid', 'idx']
         values = map(lambda x:x + '=' + script.re('var ' + x + ' = .*"([^"]*)";')[0], params)
@@ -135,4 +135,4 @@ class WeSpider(Spider):
         }
 
     def error(self, msg):
-        return {u"error" : msg, u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}
+        return {u"error" : msg, u"date" : unicode(datetime.now().strftime(config.date_format))}
