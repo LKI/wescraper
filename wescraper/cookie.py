@@ -49,16 +49,18 @@ class Cookie:
         return self.current()
 
     def set_return_header(self, headers):
-        diff = False
+        new_cookie = self.current()
         for header in headers:
             for key in ['SNUID', 'SUID']:
                 if key == header.split('=')[0]:
                     value = header.split('=')[1].split(';')[0]
-                    if key not in self.current_cookie or value != self.current_cookie[key]:
+                    if key not in new_cookie or value != new_cookie[key]:
                         diff = True
-                        self.current_cookie[key] = value
-        if diff:
-            self.current_cookie['SUV'] = self.get_suv()
+                        new_cookie[key] = value
+        if not self.same(new_cookie, self.current()):
+            new_cookie['SUV'] = self.get_suv()
+            self.remove(self.current())
+            self.cookies = self.cookies + [new_cookie]
             self.dump()
 
     def new(self, snuid, suid):
@@ -68,9 +70,10 @@ class Cookie:
         return { 'SNUID' : snuid, 'SUID' : suid, 'SUV' : suv}
 
     def same(self, cx, cy):
-        if (cx['SNUID'] == cy['SNUID'] and cx['SUID'] == cy['SUID'] and cx['SUV'] == cy['SUV']):
-            return True
-        return False
+        same = True
+        for key in ['SNUID', 'SUID', 'SUV']:
+            same = same and key in cx and key in cy and cx[key] == cy[key]
+        return same
 
     def has(self, cookie):
         for c in self.cookies:

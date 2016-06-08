@@ -1,4 +1,4 @@
-from accountSpider import AccountSpider
+from wespider import WeSpider
 from scrapy.crawler import CrawlerProcess
 
 class WeScraper:
@@ -18,7 +18,7 @@ class WeScraper:
             'ACCOUNT_LIST'             : accounts,
             'SEARCH_TYPE'              : search_type
         })
-        spider = AccountSpider()
+        spider = WeSpider()
         crawler.crawl(spider)
         crawler.start()
         return sorted(self.results, key=lambda x:x[u'date'], reverse=True)

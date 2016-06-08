@@ -6,9 +6,9 @@ from datetime import datetime
 from random import random
 from scrapy import Spider, Request
 
-class AccountSpider(Spider):
+class WeSpider(Spider):
     """
-    The AccountSpider class will use weixin.sogou.com to search the official
+    The WeSpider class will use weixin.sogou.com to search the official
     accounts. And get the first ten article infomation of each official
     account.
     """
