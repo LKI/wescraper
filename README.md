@@ -6,11 +6,12 @@
 
 ## 命令行直接查询
 
-安装Scrapy，直接查询。（例：查询`liriansu`相关的公众号）
+安装Scrapy，直接查询。
 
 ```
 pip install scrapy
-python wechat-scraper/wxscraper.py liriansu
+python wechat-scraper/scraper.py liriansu > liriansu.json # 查询liriansu相关的公众号
+python wechat-scraper/scraper.py year liriansu > liriansu.json # 查询liriansu相关的文章（一年内）
 ```
 
 ## Web Server查询
@@ -30,7 +31,7 @@ python wechat-scraper/server.py
 
 ## Python Code调用
 
-参见[wxscraper.py][scraper-py]源码
+参见[scraper.py][scraper-py]源码
 
 # 详细说明
 
@@ -49,8 +50,8 @@ python wechat-scraper/server.py
 严禁用于商业用途，其它转载/Fork随意。
 
 [scrapy]: https://github.com/scrapy/scrapy
-[scraper-py]: /weixinscraper/wxscraper.py
+[scraper-py]: /wechat-scraper/scraper.py
 [anti]: http://doc.scrapy.org/en/latest/topics/practices.html#avoiding-getting-banned
-[cookie-py]: /weixinscraper/cookie.py
+[cookie-py]: /wechat-scraper/cookie.py
 [sogou]:  http://weixin.sogou.com/
 [dive-into-python]: http://www.diveintopython.net/

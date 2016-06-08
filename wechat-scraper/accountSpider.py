@@ -14,6 +14,7 @@ class AccountSpider(Spider):
     """
     name = 'weixin'
     article_infos = {}
+    not_found = "Not Found"
     # Define cookie pool size to 5. At the first 5 queries, we'll use empty
     # cookie to query and save the return cookie in pool.
     cookie_pool_size = 5
@@ -83,8 +84,8 @@ class AccountSpider(Spider):
         very beginning. It use JavaScript and a Json string to render the page
         dynamicly. So we use python-json module to parse the Json string.
         """
-        nickname = response.xpath('//div/strong[contains(@class, "profile_nickname")]/text()')[0].extract().strip()
-        account  = response.xpath('//div/p[contains(@class, "profile_account")]/text()')[0].extract().strip()
+        nickname = response.xpath('//div/strong[contains(@class, "profile_nickname")]/text()').extract_first(default=self.not_found).strip()
+        account  = response.xpath('//div/p[contains(@class, "profile_account")]/text()').extract_first(default=self.not_found).strip()
         msgJson  = response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0]
         articles = json.loads(msgJson)['list']
         for article in articles:
@@ -104,8 +105,8 @@ class AccountSpider(Spider):
         Finally we've got into the article page. Since response.url is generated
         dynamically, we need to get the permenant URL of the article.
         """
-        title  = response.xpath('//div[@id="page-content"]/div/h2/text()')[0].extract().strip()
-        user   = response.xpath('//*[@id="post-user"]/text()')[0].extract()
+        title  = response.xpath('//div[@id="page-content"]/div/h2/text()').extract_first(default=self.not_found).strip()
+        user   = response.xpath('//*[@id="post-user"]/text()').extract_first(default=self.not_found).strip()
         script = response.xpath('//script[contains(text(), "var biz =")]')[0]
         params = ['biz', 'sn', 'mid', 'idx']
         values = map(lambda x:x + '=' + script.re('var ' + x + ' = .*"([^"]*)";')[0], params)
