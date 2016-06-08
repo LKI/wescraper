@@ -85,7 +85,6 @@ class AccountSpider(Spider):
         dynamicly. So we use python-json module to parse the Json string.
         """
         nickname = response.xpath('//div/strong[contains(@class, "profile_nickname")]/text()').extract_first(default=self.not_found).strip()
-        account  = response.xpath('//div/p[contains(@class, "profile_account")]/text()').extract_first(default=self.not_found).strip()
         msgJson  = response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0]
         articles = json.loads(msgJson)['list']
         for article in articles:
@@ -99,6 +98,15 @@ class AccountSpider(Spider):
                 'digest' : appinfo['digest']
             }
             yield Request(url, callback=self.parse_article)
+            if u'multi_app_msg_item_list' in appinfo:
+                for info in appinfo[u'multi_app_msg_item_list']:
+                    url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(info['content_url'][4:]))
+                    self.article_infos[url] = {
+                        'cover'  : hp().unescape(hp().unescape(info['cover'])).replace('\\/', '/'),
+                        'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime('%Y-%m-%d %H:%M:%S'),
+                        'digest' : info['digest']
+                    }
+                    yield Request(url, callback=self.parse_article)
 
     def parse_article(self, response):
         """
