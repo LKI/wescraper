@@ -23,6 +23,7 @@ class KeywordHandler(tw.RequestHandler):
         allow_types = ["all", "year", "month", "week", "day"]
         if not key_type in ["all", "year", "month", "week", "day"]:
             self.write("Type should be in :" + str(allow_types))
+            return
         if path:
             accounts = path.split('/')
             p = subprocess.Popen(["python", scraper] + [key_type] + accounts, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
