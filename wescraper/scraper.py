@@ -1,46 +1,32 @@
 from accountSpider import AccountSpider
-from keywordSpider import KeywordSpider
 from scrapy.crawler import CrawlerProcess
 
-class WeChatScraper:
+class WeScraper:
     """
-    WeChatScraper can search official articles and return data in Json format
+    WeScraper can search official articles and return data in Json format
     """
     results = []
 
     def process_item(self, item, spider):
         self.results.append(dict(item))
 
-    def crawl(self, accounts):
+    def crawl_key(self, search_type, accounts):
         crawler = CrawlerProcess({
-            'ITEM_PIPELINES'           : {'__main__.WeChatScraper' : 1},
+            'ITEM_PIPELINES'           : {'__main__.WeScraper' : 1},
             'COOKIES_ENABLED'          : True,
             'RANDOMIZE_DOWNLOAD_DELAY' : True,
-            'ACCOUNT_LIST'             : accounts
+            'ACCOUNT_LIST'             : accounts,
+            'SEARCH_TYPE'              : search_type
         })
         spider = AccountSpider()
         crawler.crawl(spider)
         crawler.start()
         return sorted(self.results, key=lambda x:x[u'date'], reverse=True)
 
-    def crawl_key(self, search_type, accounts):
-        crawler = CrawlerProcess({
-            'ITEM_PIPELINES'           : {'__main__.WeChatScraper' : 1},
-            'COOKIES_ENABLED'          : True,
-            'RANDOMIZE_DOWNLOAD_DELAY' : True,
-            'ACCOUNT_LIST'             : accounts,
-            'SEARCH_TYPE'              : search_type
-        })
-        spider = KeywordSpider()
-        crawler.crawl(spider)
-        crawler.start()
-        return sorted(self.results, key=lambda x:x[u'date'], reverse=True)
-
 if __name__ == '__main__':
     import sys
-    if (sys.argv[1] in ["all", "year", "month", "week", "day"]):
-        datas = WeChatScraper().crawl_key(sys.argv[1], sys.argv[2:])
-    else:
-        datas = WeChatScraper().crawl(sys.argv[1:])
+    datas = []
+    if len(sys.argv) > 1 and sys.argv[1] in ["account", "key-all", "key-year", "key-month", "key-week", "key-day"]:
+        datas = WeScraper().crawl_key(sys.argv[1], sys.argv[2:])
     import json
     print json.dumps(datas, ensure_ascii=False).encode("utf8")

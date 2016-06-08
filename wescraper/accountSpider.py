@@ -1,10 +1,10 @@
 import json
 import logging
-from random import random
-from datetime import datetime
-from scrapy import Spider, Request
 from HTMLParser import HTMLParser as hp
 from cookie import Cookie
+from datetime import datetime
+from random import random
+from scrapy import Spider, Request
 
 class AccountSpider(Spider):
     """
@@ -12,31 +12,42 @@ class AccountSpider(Spider):
     accounts. And get the first ten article infomation of each official
     account.
     """
-    name = 'weixin'
     article_infos = {}
-    not_found = "Not Found"
-    cookie_pool = Cookie()
+    cookie_pool   = Cookie()
+    name          = 'wescraper'
+    not_found     = "Not Found"
 
     def start_requests(self):
         """
         Actually, it's better to use __init__ to pass the attributes. But I've
         tried and failed. So I use scrapy settings for a workaround.
         """
-        # Get random start url
-        random_start_urls = [
-            "http://weixin.sogou.com/weixin?type=1&ie=utf8&_sug_=n&_sug_type_=&query=",
-            "http://weixin.sogou.com/weixin?query="
-        ]
-        self.start_urls = map(lambda x: random_start_urls[int(random() * len(random_start_urls))] + x, self.settings.get('ACCOUNT_LIST'))
-
+        start_point = {
+            "account"   : [
+                            "http://weixin.sogou.com/weixin?type=1&ie=utf8&_sug_=n&_sug_type_=&query=",
+                            "http://weixin.sogou.com/weixin?query="
+                          ],
+            "key-all"   : ["http://weixin.sogou.com/weixin?type=2&query="],
+            "key-day"   : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_day&tsn=1&query="],
+            "key-week"  : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_week&tsn=2&query="],
+            "key-month" : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_month&tsn=3&query="],
+            "key-year"  : ["http://weixin.sogou.com/weixin?type=2&sourceid=inttime_year&tsn=4&query="]
+        }
+        account_list = self.settings.get("ACCOUNT_LIST", [])
+        search_type = self.settings.get("SEARCH_TYPE", "account")
+        random_urls = start_point[search_type]
+        self.start_urls = map(lambda x: random_urls[int(random() * len(random_urls))] + x, account_list)
         for url in self.start_urls:
-            yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse)
+            if search_type == "account":
+                yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse)
+            else:
+                yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse_keyword)
 
     def parse(self, response):
         """
         Parse the result from the main search page and crawl into each result.
         """
-        logger = logging.getLogger(response.url[-6:])
+        logger = logging.getLogger(response.url[-10:])
         logger.debug(str("Current cookie: " + str(self.cookie_pool.current())))
         if "/antispider/" in response.url:
             cookie = self.cookie_pool.get_banned()
@@ -44,47 +55,61 @@ class AccountSpider(Spider):
                 logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
                 yield Request(response.url, cookies=cookie, callback=self.parse)
             else:
-                yield {
-                    u"error": u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url),
-                    u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
-                }
+                yield self.error(u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
         else:
             self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'))
-            # only query first account
-            account_url = response.urljoin(response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first())
-            yield Request(account_url, callback=self.parse_account)
+            yield Request(
+                response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first(),
+                callback=self.parse_account
+            )
+
+    def parse_keyword(self, response):
+        logger = logging.getLogger(response.url[-10:])
+        logger.debug(str("Current cookie: " + str(self.cookie_pool.current())))
+        if "/antispider/" in response.url:
+            cookie = self.cookie_pool.get_banned()
+            if cookie:
+                logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
+                yield Request(response.url, cookies=cookie, callback=self.parse)
+            else:
+                yield self.error(u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
+        else:
+            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'))
+            articles = response.xpath('//div[@class="results"]/div[contains(@class, "wx-rb")]')
+            for i in range(0, len(articles)):
+                url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
+                cover = hp().unescape(hp().unescape(articles.xpath('//div/a/img/@src')[i].extract())).replace('\\/', '/')
+                date = datetime.fromtimestamp(int(articles.xpath('//div/div/span/script/text()')[i].extract()[22:-2])).strftime('%Y-%m-%d %H:%M:%S')
+                digest = articles.xpath('//div[@class="txt-box"]/p')[i].extract()
+                self.article_infos[url] = {
+                    'cover'  : cover,
+                    'date'   : date,
+                    'digest' : digest
+                }
+                yield Request(url, callback=self.parse_article)
 
     def parse_account(self, response):
         """
         Parse the account page and crawl into each article.
 
-        It's worth noting that this account page does not render HTML code from
-        very beginning. It use JavaScript and a Json string to render the page
-        dynamicly. So we use python-json module to parse the Json string.
+        Note: this account page does not render HTML code from very beginning.
+        It use JavaScript and a Json string to render the page dynamicly. So we
+        use python-json module to parse the Json string.
         """
-        nickname = response.xpath('//div/strong[contains(@class, "profile_nickname")]/text()').extract_first(default=self.not_found).strip()
-        msgJson  = response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0]
-        articles = json.loads(msgJson)['list']
+        articles = json.loads(response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0])['list']
         for article in articles:
             appinfo = article['app_msg_ext_info']
+            allinfo = [appinfo] + (appinfo[u'multi_app_msg_item_list'] if u'multi_app_msg_item_list' in appinfo else [])
             cominfo = article['comm_msg_info']
-            # Unescape the HTML tags twice
-            url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(appinfo['content_url'][4:]))
-            self.article_infos[url] = {
-                'cover'  : hp().unescape(hp().unescape(appinfo['cover'])).replace('\\/', '/'),
-                'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime('%Y-%m-%d %H:%M:%S'),
-                'digest' : appinfo['digest']
-            }
-            yield Request(url, callback=self.parse_article)
-            if u'multi_app_msg_item_list' in appinfo:
-                for info in appinfo[u'multi_app_msg_item_list']:
-                    url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(info['content_url'][4:]))
-                    self.article_infos[url] = {
-                        'cover'  : hp().unescape(hp().unescape(info['cover'])).replace('\\/', '/'),
-                        'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime('%Y-%m-%d %H:%M:%S'),
-                        'digest' : info['digest']
-                    }
-                    yield Request(url, callback=self.parse_article)
+            for info in allinfo:
+                # Unescape the HTML tags twice
+                url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(info['content_url'][4:]))
+                self.article_infos[url] = {
+                    'cover'  : hp().unescape(hp().unescape(info['cover'])).replace('\\/', '/'),
+                    'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime('%Y-%m-%d %H:%M:%S'),
+                    'digest' : info['digest']
+                }
+                yield Request(url, callback=self.parse_article)
 
     def parse_article(self, response):
         """
@@ -109,15 +134,5 @@ class AccountSpider(Spider):
             u'content' : unicode(html)
         }
 
-    def parse_cookie(self, header_list):
-        snuid = ""
-        suid = ""
-        for header in header_list:
-            if 'SNUID' == header.split('=')[0]:
-                snuid = header.split('=')[1].split(';')[0]
-            if 'SUID' == header.split('=')[0]:
-                suid = header.split('=')[1].split(';')[0]
-        if "" == snuid:
-            return self.cookie
-        else:
-            return self.cookie_pool.new(snuid, suid)
+    def error(self, msg):
+        return {u"error" : msg, u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S'))}

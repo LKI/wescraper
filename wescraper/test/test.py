@@ -10,7 +10,7 @@ class TestWeScraper(unittest.TestCase):
         self.assertEqual(1, 1)
 
     def test_account(self):
-        p = subprocess.Popen(["python", self.scraper, "liriansu"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(["python", self.scraper, "account", "liriansu"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         a = json.loads(out)
         self.assertLess(8, len(a))
@@ -19,7 +19,7 @@ class TestWeScraper(unittest.TestCase):
         self.assertEqual(u'\u82cf\u5b50\u5cb3', a[0][u'account'])
 
     def test_keyword(self):
-        p = subprocess.Popen(["python", self.scraper, "all",  "liriansu"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        p = subprocess.Popen(["python", self.scraper, "key-all", "liriansu"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         out, err = p.communicate()
         a = json.loads(out)
         self.assertEqual(10, len(a))
