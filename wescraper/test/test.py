@@ -1,10 +1,10 @@
-import subprocess
 import json
+import os.path
+import subprocess
 import unittest
-import os.path as op
 
 class TestWeScraper(unittest.TestCase):
-    scraper =  op.join(op.dirname(op.dirname(op.realpath(__file__))), 'wechat-scraper', 'scraper.py')
+    scraper = os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), 'scraper.py')
 
     def test_test(self):
         self.assertEqual(1, 1)
