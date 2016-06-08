@@ -15,9 +15,6 @@ class AccountSpider(Spider):
     name = 'weixin'
     article_infos = {}
     not_found = "Not Found"
-    # Define cookie pool size to 5. At the first 5 queries, we'll use empty
-    # cookie to query and save the return cookie in pool.
-    cookie_pool_size = 5
     cookie_pool = Cookie()
 
     def start_requests(self):
@@ -33,48 +30,29 @@ class AccountSpider(Spider):
         self.start_urls = map(lambda x: random_start_urls[int(random() * len(random_start_urls))] + x, self.settings.get('ACCOUNT_LIST'))
 
         for url in self.start_urls:
-            # Get a random cookie
-            clist = self.cookie_pool.get_cookies()
-            if len(clist) < self.cookie_pool_size:
-                self.cookie = {}
-            else:
-                self.cookie = clist[int(random() * len(clist))]
-            yield Request(url, cookies=self.cookie, callback=self.parse)
+            yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse)
 
     def parse(self, response):
         """
         Parse the result from the main search page and crawl into each result.
         """
         logger = logging.getLogger(response.url[-6:])
-        logger.debug(str("Using cookie :" + str(self.cookie)))
+        logger.debug(str("Current cookie: " + str(self.cookie_pool.current())))
         if "/antispider/" in response.url:
-            self.cookie_pool.remove(self.cookie)   # This cookie is banned, remove it
-            clist = self.cookie_pool.get_cookies() # Use a new cookie to query
-            if 0 == len(clist):                    # If we run out of cookie, then our IP could be banned
+            cookie = self.cookie_pool.get_banned()
+            if cookie:
+                logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
+                yield Request(response.url, cookies=cookie, callback=self.parse)
+            else:
                 yield {
                     u"error": u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url),
                     u"date" : unicode(datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
                 }
-            else:
-                self.cookie = clist[int(random() * len(clist))]
-                yield Request(response.url, cookies=self.cookie, callback=self.parse)
-        # Parse return cookie
-        new_cookie = self.parse_cookie(response.headers.getlist('Set-Cookie'))
-        logger.debug(str("New cookie is:" + str(new_cookie)))
-        # If we are using empty cookie, then save the new cookie
-        if 0 == len(self.cookie):
-            logger.debug(str("Adding new cookie"))
-            self.cookie_pool.add(new_cookie)
-            self.cookie_pool.dump()
-        # or the new cookie is different from the old cookie
-        elif not self.cookie_pool.has(new_cookie):
-            logger.debug(str("Different cookie, old: {}, new: {}, replacing".format(str(self.cookie), str(new_cookie))))
-            self.cookie_pool.remove(self.cookie)
-            self.cookie_pool.add(new_cookie)
-            self.cookie_pool.dump()
-        # only query first account
-        account_url = response.urljoin(response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first())
-        yield Request(account_url, callback=self.parse_account)
+        else:
+            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'))
+            # only query first account
+            account_url = response.urljoin(response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first())
+            yield Request(account_url, callback=self.parse_account)
 
     def parse_account(self, response):
         """
