@@ -62,7 +62,7 @@ class KeywordSpider(Spider):
             self.cookie_pool.add(new_cookie)
             self.cookie_pool.dump()
         articles = response.xpath('//div[@class="results"]/div[contains(@class, "wx-rb")]')
-        for i in range(0, len(articles) - 1):
+        for i in range(0, len(articles)):
             url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
             cover = hp().unescape(hp().unescape(articles.xpath('//div/a/img/@src')[i].extract())).replace('\\/', '/')
             date = datetime.fromtimestamp(int(articles.xpath('//div/div/span/script/text()')[i].extract()[22:-2])).strftime('%Y-%m-%d %H:%M:%S')
