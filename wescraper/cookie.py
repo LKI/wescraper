@@ -37,26 +37,21 @@ class Cookie:
             chance = ((config.rise_chance_max - config.rise_chance_min) * (len(self.cookies) - config.pool_size_min)
                     / (config.pool_size_min - config.pool_size_max) + config.rise_chance_max)
         if random() <= chance:
-            self.current_cookie = {}
+            return {}
         else:
-            self.current_cookie = self.cookies[int(random() * len(self.cookies))]
-        return self.current()
+            return self.cookies[int(random() * len(self.cookies))]
 
     def get_cookies(self):
         return self.cookies
 
-    def current(self):
-        return self.current_cookie
-
-    def get_banned(self):
-        self.remove(self.current())
+    def get_banned(self, cookie):
+        self.remove(cookie)
         if 0 == len(self.cookies):
             return None
-        self.current_cookie = self.cookies[int(random() * len(self.cookies))]
-        return self.current()
+        return self.cookies[int(random() * len(self.cookies))]
 
-    def set_return_header(self, headers):
-        new_cookie = self.current()
+    def set_return_header(self, headers, cookie):
+        new_cookie = cookie
         for header in headers:
             for key in ['SNUID', 'SUID']:
                 if key == header.split('=')[0]:
@@ -64,9 +59,9 @@ class Cookie:
                     if key not in new_cookie or value != new_cookie[key]:
                         diff = True
                         new_cookie[key] = value
-        if not self.same(new_cookie, self.current()):
+        if not self.same(new_cookie, cookie):
             new_cookie['SUV'] = self.get_suv()
-            self.remove(self.current())
+            self.remove(cookie)
             self.cookies = self.cookies + [new_cookie]
             self.dump()
 

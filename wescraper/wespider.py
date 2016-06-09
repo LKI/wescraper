@@ -37,44 +37,51 @@ class WeSpider(Spider):
         search_type = self.settings.get("SEARCH_TYPE", config.type_acc)
         random_urls = start_point[search_type]
         self.start_urls = map(lambda x: random_urls[int(random() * len(random_urls))] + x, account_list)
-        for url in self.start_urls:
+        for i, url in enumerate(self.start_urls):
+            cookie = self.cookie_pool.fetch_one()
             if search_type == config.type_acc:
-                yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse)
+                yield Request(url, cookies=cookie, callback=self.parse,
+                        meta={'cookiejar' : i, 'current_cookie' : cookie})
             else:
-                yield Request(url, cookies=self.cookie_pool.fetch_one(), callback=self.parse_keyword)
+                yield Request(url, cookies=cookie, callback=self.parse_keyword,
+                        meta={'cookiejar' : i, 'current_cookie' : cookie})
 
     def parse(self, response):
         """
         Parse the result from the main search page and crawl into each result.
         """
+        current_cookie = response.meta['current_cookie']
         logger = logging.getLogger(response.url[-10:])
-        logger.debug(str("Current cookie: " + str(self.cookie_pool.current())))
+        logger.debug(str("Current cookie: " + str(current_cookie)))
         if "/antispider/" in response.url:
-            cookie = self.cookie_pool.get_banned()
+            cookie = self.cookie_pool.get_banned(current_cookie)
             if cookie:
                 logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
-                yield Request(response.url, cookies=cookie, callback=self.parse)
+                yield Request(response.url, cookies=cookie, callback=self.parse,
+                        meta={'cookiejar' : response.meta['cookiejar'], 'current_cookie' : cookie})
             else:
                 yield self.error(u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
         else:
-            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'))
+            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'), current_cookie)
             yield Request(
                 response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first(),
                 callback=self.parse_account
             )
 
     def parse_keyword(self, response):
+        current_cookie = response.meta['current_cookie']
         logger = logging.getLogger(response.url[-10:])
-        logger.debug(str("Current cookie: " + str(self.cookie_pool.current())))
+        logger.debug(str("Current cookie: " + str(current_cookie)))
         if "/antispider/" in response.url:
-            cookie = self.cookie_pool.get_banned()
+            cookie = self.cookie_pool.get_banned(current_cookie)
             if cookie:
                 logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
-                yield Request(response.url, cookies=cookie, callback=self.parse)
+                yield Request(response.url, cookies=cookie, callback=self.parse,
+                        meta={'cookiejar' : response.meta['cookiejar'], 'current_cookie' : cookie})
             else:
                 yield self.error(u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
         else:
-            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'))
+            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'), current_cookie)
             articles = response.xpath('//div[@class="results"]/div[contains(@class, "wx-rb")]')
             for i in range(0, len(articles)):
                 url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
