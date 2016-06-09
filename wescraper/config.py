@@ -6,10 +6,18 @@ tornado_port   = 80
 cookie_file    = "temp_cookies.lst"
 
 
-# Cookie Pool Size, range from min to max
-# This feature in in develop. Current we use 5 as static pool size - 2016-6-8
-pool_size_min  = 5
-pool_size_max  = 5
+# Cookie Pool Size and Rise Chance range from min to max
+# This config is all abount cookie pool auto-size, you can leave it default
+# Explanation:
+#   When we query a artcile, we'll pick up a cookie from cookie pool to query
+#   If pool size is less than `config.pool_size_min`, we'll use an empty cookie to query
+#      (And save the return cookie in cookie pool)
+#   If pool size is greater than `config.pool_size_max`, we'll use an existing cookie to query
+#   If pool size is in the range, we'll use existing or empty cookie randomly by the chance
+pool_size_min   = 5
+pool_size_max   = 20
+rise_chance_min = 0.005
+rise_chance_max = 0.08
 
 
 # This is the default NOT_FOUND hint when some key is absent on sogou.com

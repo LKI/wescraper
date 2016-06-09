@@ -6,7 +6,6 @@ from random import random
 class Cookie:
     cookies = []
     cookie_file = config.cookie_file
-    pool_size = config.pool_size_min
     def __init__(self):
         if not op.exists(self.cookie_file):
             return
@@ -30,7 +29,14 @@ class Cookie:
         return str(int(time() * 1000000) + int(random() * 1000))
 
     def fetch_one(self):
-        if len(self.cookies) < self.pool_size:
+        if len(self.cookies) < config.pool_size_min:
+            chance = 1
+        elif len(self.cookies) >= config.pool_size_max:
+            chance = 0
+        else:
+            chance = ((config.rise_chance_max - config.rise_chance_min) * (len(self.cookies) - config.pool_size_min)
+                    / (config.pool_size_min - config.pool_size_max) + config.rise_chance_max)
+        if random() <= chance:
             self.current_cookie = {}
         else:
             self.current_cookie = self.cookies[int(random() * len(self.cookies))]
