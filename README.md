@@ -10,8 +10,8 @@
 
 ```
 pip install scrapy
-python wescraper/scraper.py account liriansu > liriansu.json # 查询liriansu相关的公众号
-python wescraper/scraper.py key-day liriansu > liriansu.json # 查询liriansu相关的文章（一天内）
+python wescraper/scraper.py account liriansu miawu > we.json # 查询liriansu和miawu相关的公众号
+python wescraper/scraper.py key-day liriansu miawu > we.json # 查询liriansu和miawu相关的文章（一天内）
 ```
 
 ## Web Server查询
@@ -37,10 +37,12 @@ python wescraper/server.py
 
 * 一些可配置的参数见[config.py][config-py]
 
-* 本工具没有考虑反爬虫的问题，解决方案可以参考[Scrapy: Avoiding getting banned][anti]
+* 查询公众号默认获取列表的第一个。
+
+* 本工具有可能会被Ban，解决方案可以参考[Scrapy: Avoiding getting banned][anti]
 （一般而言，换IP就可以解决问题了）
 
-* [cookie.py][cookie-py]内维护了一个Cookie池，会在n个Cookie中随机选取来访问，假如发现被ban了就会换一个Cookie。
+* [cookie.py][cookie-py]内维护了一个Cookie池，会在n个Cookie中随机选取来访问，假如Cookie被ban了就会换一个Cookie。
 
 * 欢迎在本代码基础上修改，记得跑一下单元测试噢：`python wescraper/test/test.py`
 
