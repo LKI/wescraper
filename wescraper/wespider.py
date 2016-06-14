@@ -3,7 +3,7 @@ import json
 import logging
 from HTMLParser import HTMLParser as hp
 from cookie import Cookie
-from datetime import datetime
+from datetime import datetime, timedelta
 from random import random
 from scrapy import Spider, Request
 
@@ -60,13 +60,19 @@ class WeSpider(Spider):
                 yield Request(response.url, cookies=cookie, callback=self.parse,
                         meta={'cookiejar' : response.meta['cookiejar'], 'current_cookie' : cookie})
             else:
-                yield self.error(u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
+                yield self.error("Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
         else:
-            self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'), current_cookie)
-            yield Request(
-                response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first(),
-                callback=self.parse_account
-            )
+            if self.no_results(response):
+                if config.always_return_in_format:
+                    yield self.error_in_format("No article found")
+                else:
+                    yield self.error(u"No article found")
+            else:
+                self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'), current_cookie)
+                yield Request(
+                    response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first(),
+                    callback=self.parse_account
+                )
 
     def parse_keyword(self, response):
         current_cookie = response.meta['current_cookie']
@@ -79,21 +85,27 @@ class WeSpider(Spider):
                 yield Request(response.url, cookies=cookie, callback=self.parse,
                         meta={'cookiejar' : response.meta['cookiejar'], 'current_cookie' : cookie})
             else:
-                yield self.error(u"Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
+                yield self.error("Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
         else:
             self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'), current_cookie)
             articles = response.xpath('//div[@class="results"]/div[contains(@class, "wx-rb")]')
-            for i in range(0, len(articles)):
-                url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
-                cover = hp().unescape(hp().unescape(articles.xpath('//div/a/img/@src')[i].extract())).replace('\\/', '/')
-                date = datetime.fromtimestamp(int(articles.xpath('//div/div/span/script/text()')[i].extract()[22:-2])).strftime(config.date_format)
-                digest = articles.xpath('//div[@class="txt-box"]/p')[i].extract()
-                self.article_infos[url] = {
-                    'cover'  : cover,
-                    'date'   : date,
-                    'digest' : digest
-                }
-                yield Request(url, callback=self.parse_article)
+            if self.no_results(response) or not len(articles):
+                if config.always_return_in_format:
+                    yield self.error_in_format("No article found")
+                else:
+                    yield self.error("No article found")
+            else:
+                for i in range(0, len(articles)):
+                    url = response.urljoin(articles.xpath('//div/h4/a/@href')[i].extract())
+                    cover = hp().unescape(hp().unescape(articles.xpath('//div/a/img/@src')[i].extract())).replace('\\/', '/')
+                    date = datetime.fromtimestamp(int(articles.xpath('//div/div/span/script/text()')[i].extract()[22:-2])).strftime(config.date_format)
+                    digest = articles.xpath('//div[@class="txt-box"]/p')[i].extract()
+                    self.article_infos[url] = {
+                        'cover'  : cover,
+                        'date'   : date,
+                        'digest' : digest
+                    }
+                    yield Request(url, callback=self.parse_article)
 
     def parse_account(self, response):
         """
@@ -142,4 +154,25 @@ class WeSpider(Spider):
         }
 
     def error(self, msg):
-        return {u"error" : msg, u"date" : unicode(datetime.now().strftime(config.date_format))}
+        return {u"error" : unicode(msg), u"date" : unicode(datetime.now().strftime(config.date_format))}
+
+    def no_results(self, response):
+        if len(response.xpath("///div[@id='smart_hint_container']")):
+            return True
+        elif len(response.xpath("///div[@class='no-sosuo']")):
+            return True
+        else:
+            return False
+
+    def error_in_format(self, msg):
+        date = str(datetime.now().strftime(config.date_format))
+        yesterday = str((datetime.now() - timedelta(days=1)).strftime(config.date_format))
+        return {
+            u'title'   : unicode("{} at {}".format(msg, date)),
+            u'account' : unicode(""),
+            u'url'     : unicode("http://localhost/{}".format(date)),
+            u'date'    : unicode(date),
+            u'cover'   : unicode(""),
+            u'digest'  : unicode(""),
+            u'content' : unicode("{} at {}".format(msg, date))
+        }

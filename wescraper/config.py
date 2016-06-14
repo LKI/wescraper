@@ -24,6 +24,12 @@ rise_chance_max = 0.08
 not_found_hint = "Not Found"
 
 
+# When WeSpider can't get valid search result, will return json like
+# {"url":"http://localhost/$date", "subject":"No article found at $date"}
+# Set to False to get json in error format ({"date":"$date", "error":"No article found"})
+always_return_in_format = True
+
+
 # Date format, check [python.datetime](https://docs.python.org/2/library/datetime.html) for details
 date_format    = '%Y-%m-%d %H:%M:%S'
 
