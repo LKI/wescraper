@@ -158,7 +158,11 @@ class WeSpider(Spider):
 
     def no_results(self, response):
         if len(response.xpath("///div[@id='smart_hint_container']")):
-            return True
+            smart_hint = response.xpath("///div[@id='smart_hint_container']/text()").extract_first()
+            if u'\uff08\u4e0d\u542b\u5f15\u53f7\uff09\u7684\u641c\u7d22\u7ed3\u679c\uff1a' == smart_hint:
+                return True
+            else:
+                return False
         elif len(response.xpath("///div[@class='no-sosuo']")):
             return True
         else:
