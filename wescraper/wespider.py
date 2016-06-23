@@ -115,7 +115,9 @@ class WeSpider(Spider):
         It use JavaScript and a Json string to render the page dynamicly. So we
         use python-json module to parse the Json string.
         """
-        articles = json.loads(response.xpath('//script[@type="text/javascript"]/text()')[2].re(r'var msgList = \'(.*)\'')[0])['list']
+        for script in response.xpath('//script[@type="text/javascript"]/text()'):
+            if 'var msgList = \'' in script.extract():
+                articles = json.loads(script.re(r'var msgList = \'(.*)\'')[0])['list']
         for article in articles:
             appinfo = article['app_msg_ext_info']
             allinfo = [appinfo] + (appinfo[u'multi_app_msg_item_list'] if u'multi_app_msg_item_list' in appinfo else [])
