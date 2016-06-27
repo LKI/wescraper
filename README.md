@@ -1,5 +1,7 @@
 # WeScraper (WEchat SCRAPER)
 
+[![Build Status](https://travis-ci.org/LKI/wescraper.svg)](https://travis-ci.org/LKI/wescraper)
+
 本工具使用Python2.7和[scrapy][scrapy]来搜索微信公众号文章。
 
 # 使用教程
