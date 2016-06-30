@@ -13,7 +13,7 @@ class WeHandler(tw.RequestHandler):
         key_type, accounts = s.split(u'/')[0], s.split(u'/')[1:]
         print "Dealing request with", key_type, accounts
         if key_type in config.types and accounts:
-            p = subprocess.Popen(["python", scraper, key_type] + accounts, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            p = subprocess.Popen(["python", scraper, key_type] + map(lambda x:x.encode('utf-8'), accounts), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
             print str(err)
             self.write(out)
