@@ -9,9 +9,10 @@ dirname = os.path.dirname(os.path.realpath(sys.argv[0]))
 scraper = os.path.join(dirname,  "scraper.py")
 
 class WeHandler(tw.RequestHandler):
-    def get(self, key_type, path=None):
-        if key_type in config.types and path:
-            accounts = path.split('/')
+    def get(self, s):
+        key_type, accounts = s.split(u'/')[0], s.split(u'/')[1:]
+        print "Dealing request with", key_type, accounts
+        if key_type in config.types and accounts:
             p = subprocess.Popen(["python", scraper, key_type] + accounts, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
             out, err = p.communicate()
             print str(err)
@@ -24,7 +25,6 @@ class WeHandler(tw.RequestHandler):
 
 app = tw.Application([
     (r'/(favicon.ico)', tw.StaticFileHandler, {"path": ""}),
-    (ur'/(.*)/(.*)', WeHandler),
     (ur'/(.*)', WeHandler)
 ])
 app.listen(config.tornado_port)
