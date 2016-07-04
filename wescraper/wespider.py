@@ -57,7 +57,7 @@ class WeSpider(Spider):
             cookie = self.cookie_pool.get_banned(current_cookie)
             if cookie:
                 logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
-                yield Request(response.url, cookies=cookie, callback=self.parse,
+                yield Request(response.request.meta['redirect_urls'][0], cookies=cookie, callback=self.parse,
                         meta={'cookiejar' : response.meta['cookiejar'], 'current_cookie' : cookie})
             else:
                 yield self.error("Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))
@@ -82,7 +82,7 @@ class WeSpider(Spider):
             cookie = self.cookie_pool.get_banned(current_cookie)
             if cookie:
                 logger.debug(str("Got banned. Using new cookie: " + str(cookie)));
-                yield Request(response.url, cookies=cookie, callback=self.parse,
+                yield Request(response.request.meta['redirect_urls'][0], cookies=cookie, callback=self.parse,
                         meta={'cookiejar' : response.meta['cookiejar'], 'current_cookie' : cookie})
             else:
                 yield self.error("Seems our IP was banned. Caught by WeChat Antispider: {}".format(response.url))

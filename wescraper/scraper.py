@@ -16,6 +16,7 @@ class WeScraper:
             'ITEM_PIPELINES'           : {'__main__.WeScraper' : 1},
             'COOKIES_ENABLED'          : True,
             'RANDOMIZE_DOWNLOAD_DELAY' : True,
+            'DUPEFILTER_CLASS'         : 'scrapy.dupefilter.BaseDupeFilter',
             'ACCOUNT_LIST'             : accounts,
             'SEARCH_TYPE'              : search_type
         })

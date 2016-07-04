@@ -46,6 +46,7 @@ class Cookie:
 
     def get_banned(self, cookie):
         self.remove(cookie)
+        self.dump()
         if 0 == len(self.cookies):
             return None
         return self.cookies[int(random() * len(self.cookies))]
