@@ -139,10 +139,9 @@ class WeSpider(Spider):
         """
         title  = response.xpath('//div[@id="page-content"]/div/h2/text()').extract_first(default=config.not_found_hint).strip()
         user   = response.xpath('//*[@id="post-user"]/text()').extract_first(default=config.not_found_hint).strip()
-        script = response.xpath('//script[contains(text(), "var biz =")]')[0]
-        params = ['biz', 'sn', 'mid', 'idx']
-        values = map(lambda x:x + '=' + script.re('var ' + x + ' = .*"([^"]*)";')[0], params)
-        url    = "http://mp.weixin.qq.com/s?" + reduce(lambda x,y:x+'&'+y, values)
+        script = response.xpath('//script[contains(text(), "var msg_link =")]')[0]
+        params = ['__biz', 'sn', 'mid', 'idx']
+        url    = hp().unescape(script.re('var msg_link = .*"([^"]*)";')[0])
         html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).strip()
         info   = self.article_infos[response.url]
         yield {
