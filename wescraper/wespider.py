@@ -1,6 +1,7 @@
 import config
 import json
 import logging
+import re
 from HTMLParser import HTMLParser as hp
 from cookie import Cookie
 from datetime import datetime, timedelta
@@ -115,9 +116,10 @@ class WeSpider(Spider):
         It use JavaScript and a Json string to render the page dynamicly. So we
         use python-json module to parse the Json string.
         """
-        for script in response.xpath('//script[@type="text/javascript"]/text()'):
-            if 'var msgList = \'' in script.extract():
-                articles = json.loads(script.re(r'var msgList = \'(.*)\'')[0])['list']
+        m = re.search(r'var msgList = \'(.*)\'', response.body)
+        if not m:
+            yield self.error("Invalid response {}".format(response.url))
+        articles = json.loads(m.group(1).replace('&quot;','"'))['list']
         for article in articles:
             appinfo = article['app_msg_ext_info']
             allinfo = [appinfo] + (appinfo[u'multi_app_msg_item_list'] if u'multi_app_msg_item_list' in appinfo else [])
@@ -139,9 +141,11 @@ class WeSpider(Spider):
         """
         title  = response.xpath('//div[@id="page-content"]/div/h2/text()').extract_first(default=config.not_found_hint).strip()
         user   = response.xpath('//*[@id="post-user"]/text()').extract_first(default=config.not_found_hint).strip()
-        script = response.xpath('//script[contains(text(), "var msg_link =")]')[0]
+        m      = re.search('var msg_link = .*"([^"]*)";', response.body)
+        if not m:
+            yield self.error("Something wrong with article {}".format(title))
         params = ['__biz', 'sn', 'mid', 'idx']
-        url    = hp().unescape(script.re('var msg_link = .*"([^"]*)";')[0])
+        url    = hp().unescape(m.group(1))
         html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).strip()
         info   = self.article_infos[response.url]
         yield {
