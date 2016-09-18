@@ -119,20 +119,21 @@ class WeSpider(Spider):
         m = re.search(r'var msgList = \'(.*)\'', response.body)
         if not m:
             yield self.error("Invalid response {}".format(response.url))
-        articles = json.loads(m.group(1).replace('&quot;','"'))['list']
-        for article in articles:
-            appinfo = article['app_msg_ext_info']
-            allinfo = [appinfo] + (appinfo[u'multi_app_msg_item_list'] if u'multi_app_msg_item_list' in appinfo else [])
-            cominfo = article['comm_msg_info']
-            for info in allinfo:
-                # Unescape the HTML tags twice
-                url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(info['content_url'][4:]))
-                self.article_infos[url] = {
-                    'cover'  : hp().unescape(hp().unescape(info['cover'])).replace('\\/', '/'),
-                    'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime(config.date_format),
-                    'digest' : info['digest']
-                }
-                yield Request(url, callback=self.parse_article)
+        else:
+            articles = json.loads(m.group(1).replace('&quot;','"'))['list']
+            for article in articles:
+                appinfo = article['app_msg_ext_info']
+                allinfo = [appinfo] + (appinfo[u'multi_app_msg_item_list'] if u'multi_app_msg_item_list' in appinfo else [])
+                cominfo = article['comm_msg_info']
+                for info in allinfo:
+                    # Unescape the HTML tags twice
+                    url  = "http://mp.weixin.qq.com/s?" + hp().unescape(hp().unescape(info['content_url'][4:]))
+                    self.article_infos[url] = {
+                        'cover'  : hp().unescape(hp().unescape(info['cover'])).replace('\\/', '/'),
+                        'date'   : datetime.fromtimestamp(int(cominfo['datetime'])).strftime(config.date_format),
+                        'digest' : info['digest']
+                    }
+                    yield Request(url, callback=self.parse_article)
 
     def parse_article(self, response):
         """
@@ -144,19 +145,20 @@ class WeSpider(Spider):
         m      = re.search('var msg_link = .*"([^"]*)";', response.body)
         if not m:
             yield self.error("Something wrong with article {}".format(title))
-        params = ['__biz', 'sn', 'mid', 'idx']
-        url    = hp().unescape(m.group(1))
-        html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).strip()
-        info   = self.article_infos[response.url]
-        yield {
-            u'title'   : unicode(title),
-            u'account' : unicode(user),
-            u'url'     : unicode(url),
-            u'date'    : unicode(info['date']),
-            u'cover'   : unicode(info['cover']),
-            u'digest'  : unicode(info['digest']),
-            u'content' : unicode(html)
-        }
+        else:
+            params = ['__biz', 'sn', 'mid', 'idx']
+            url    = hp().unescape(m.group(1))
+            html   = str.join("\n", response.xpath('//*[@id="js_content"]').extract()).strip()
+            info   = self.article_infos[response.url]
+            yield {
+                u'title'   : unicode(title),
+                u'account' : unicode(user),
+                u'url'     : unicode(url),
+                u'date'    : unicode(info['date']),
+                u'cover'   : unicode(info['cover']),
+                u'digest'  : unicode(info['digest']),
+                u'content' : unicode(html)
+            }
 
     def error(self, msg):
         return {u"error" : unicode(msg), u"date" : unicode(datetime.now().strftime(config.date_format))}
