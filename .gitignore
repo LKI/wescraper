@@ -1,4 +1,7 @@
 *.pyc
 *.lst
 *.json
-result/
+
+/result/
+/.idea/
+/env/

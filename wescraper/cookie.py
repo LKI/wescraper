@@ -1,29 +1,31 @@
-import config
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals
+
 import os.path as op
-from time import time
 from random import random
+from time import time
+
+import config
+
 
 class Cookie:
     cookies = []
     cookie_file = config.cookie_file
+
     def __init__(self):
         if not op.exists(self.cookie_file):
             return
-        with open(self.cookie_file, "rb") as f:
+        with open(self.cookie_file, 'rb') as f:
             l = f.readlines()
             for i in range(0, len(l) / 3):
                 cookie = self.new_with_suv(l[3 * i].strip(), l[3 * i + 1].strip(), l[3 * i + 2].strip())
-                self.cookies = self.cookies + [cookie]
+                self.cookies.append(cookie)
 
     def dump(self):
-        with open(self.cookie_file, "wb") as f:
+        with open(self.cookie_file, 'wb') as f:
             for cookie in self.cookies:
-                f.write(cookie['SNUID'])
-                f.write("\n")
-                f.write(cookie['SUID'])
-                f.write("\n")
-                f.write(cookie['SUV'])
-                f.write("\n")
+                lines = [cookie['SNUID'], cookie['SUID'], cookie['SUV']]
+                f.writelines(lines)
 
     def get_suv(self):
         return str(int(time() * 1000000) + int(random() * 1000))
@@ -35,7 +37,7 @@ class Cookie:
             chance = 0
         else:
             chance = ((config.rise_chance_max - config.rise_chance_min) * (len(self.cookies) - config.pool_size_min)
-                    / (config.pool_size_min - config.pool_size_max) + config.rise_chance_max)
+                      / (config.pool_size_min - config.pool_size_max) + config.rise_chance_max)
         if random() <= chance:
             return {}
         else:
@@ -58,19 +60,18 @@ class Cookie:
                 if key == header.split('=')[0]:
                     value = header.split('=')[1].split(';')[0]
                     if key not in new_cookie or value != new_cookie[key]:
-                        diff = True
                         new_cookie[key] = value
         if not self.same(new_cookie, cookie):
             new_cookie['SUV'] = self.get_suv()
             self.remove(cookie)
-            self.cookies = self.cookies + [new_cookie]
+            self.cookies.append(new_cookie)
             self.dump()
 
     def new(self, snuid, suid):
-        return { 'SNUID' : snuid, 'SUID' : suid, 'SUV' : self.get_suv()}
+        return {'SNUID': snuid, 'SUID': suid, 'SUV': self.get_suv()}
 
     def new_with_suv(self, snuid, suid, suv):
-        return { 'SNUID' : snuid, 'SUID' : suid, 'SUV' : suv}
+        return {'SNUID': snuid, 'SUID': suid, 'SUV': suv}
 
     def same(self, cx, cy):
         same = True
@@ -85,10 +86,10 @@ class Cookie:
         return False
 
     def add(self, cookie):
-        self.cookies = self.cookies + [cookie]
+        self.cookies.append(cookie)
 
     def remove(self, cookie):
         for i in range(0, len(self.cookies)):
             if self.same(self.cookies[i], cookie):
-                self.cookies = self.cookies[:i] + self.cookies[i+1:]
+                self.cookies = self.cookies[:i] + self.cookies[i + 1:]
                 return
