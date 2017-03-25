@@ -73,11 +73,11 @@ class WeSpider(Spider):
                 if config.always_return_in_format:
                     yield self.error_in_format('No article found')
                 else:
-                    yield self.error(u'No article found')
+                    yield self.error('No article found')
             else:
                 self.cookie_pool.set_return_header(response.headers.getlist('Set-Cookie'), current_cookie)
                 yield Request(
-                    response.xpath('//div[@class="results mt7"]/div[contains(@class, "wx-rb")]/@href').extract_first(),
+                    response.xpath('//div[@class="txt-box"]/p[@class="tit"]/a/@href').extract_first(),
                     callback=self.parse_account
                 )
 
@@ -126,22 +126,21 @@ class WeSpider(Spider):
         It use JavaScript and a Json string to render the page dynamicly. So we
         use python-json module to parse the Json string.
         """
-        m = re.search(r'var msgList = \'(.*)\'', response.body)
+        m = re.search(r'var msgList = (.*);', response.body)
         if not m:
             yield self.error('Invalid response {}'.format(response.url))
         else:
-            articles = json.loads(m.group(1).replace('&quot;', '"'))['list']
+            articles = json.loads(m.group(1))['list']
             for article in articles:
                 appinfo = article['app_msg_ext_info']
                 allinfo = [appinfo] + (
-                    appinfo[u'multi_app_msg_item_list'] if u'multi_app_msg_item_list' in appinfo else [])
+                    appinfo['multi_app_msg_item_list'] if 'multi_app_msg_item_list' in appinfo else [])
                 cominfo = article['comm_msg_info']
                 for info in allinfo:
                     # Unescape the HTML tags twice
-                    url = 'http://mp.weixin.qq.com/s?' + HTMLParser().unescape(
-                        HTMLParser().unescape(info['content_url'][4:]))
+                    url = 'http://mp.weixin.qq.com' + HTMLParser().unescape(info['content_url'])
                     self.article_infos[url] = {
-                        'cover': HTMLParser().unescape(HTMLParser().unescape(info['cover'])).replace('\\/', '/'),
+                        'cover': HTMLParser().unescape(info['cover']).replace('\\/', '/'),
                         'date': datetime.fromtimestamp(int(cominfo['datetime'])).strftime(config.date_format),
                         'digest': info['digest']
                     }
@@ -173,7 +172,7 @@ class WeSpider(Spider):
             }
 
     def error(self, msg):
-        return {u'error': msg, u'date': datetime.now().strftime(config.date_format)}
+        return {'error': msg, 'date': datetime.now().strftime(config.date_format)}
 
     def no_results(self, response):
         if len(response.xpath('///div[@id="smart_hint_container"]')):
